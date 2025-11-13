@@ -1,0 +1,170 @@
+# 服务器配置
+server:
+  port: 8080
+
+# Spring 配置
+spring:
+  application:
+    name: blockchain-website-backend
+  devtools:
+    restart:
+      enabled: false
+  
+  # 数据源配置 - 优化连接池参数
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: jinmuyan1314217
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # 连接池配置优化
+      maximum-pool-size: 30          # 最大连接数，根据服务器性能调整
+      minimum-idle: 10               # 最小空闲连接数
+      idle-timeout: 600000           # 空闲连接超时时间（10分钟）
+      max-lifetime: 1800000          # 连接最大生命周期（30分钟）
+      connection-timeout: 30000      # 连接超时时间（30秒）
+      validation-timeout: 5000       # 连接验证超时时间（5秒）
+      leak-detection-threshold: 60000 # 连接泄露检测阈值（60秒）
+      # 性能优化配置
+      auto-commit: false             # 关闭自动提交，使用手动事务管理
+      connection-test-query: SELECT 1 # 连接测试查询
+      pool-name: BlockchainHikariPool # 连接池名称，便于监控
+  
+  # JPA 配置 - 性能优化
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50          # 批处理大小，提高批量操作性能
+          fetch_size: 200         # JDBC获取大小，优化大数据集查询
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false # 关闭统计信息生成，提高性能
+        connection:
+          provider_disables_autocommit: true # 连接提供程序禁用自动提交
+    open-in-view: false
+  
+  # Redis 配置 - 优化连接池
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20         # 最大活跃连接数
+          max-idle: 10            # 最大空闲连接数
+          min-idle: 5             # 最小空闲连接数
+          max-wait: 5000ms        # 最大等待时间
+          time-between-eviction-runs: 30000ms # 空闲连接回收周期
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+  
+  # 缓存配置
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1小时
+      cache-names: posts,projects,files,members,meetings,statistics # 预定义的缓存名称
+      key-prefix: blockchain:cache # Redis key前缀
+      use-key-prefix: true
+
+# JWT 配置
+jwt:
+  secret: blockchainWebsiteJwtSecretKey2024!@#$%^&*()_+
+  expiration: 86400000 # 24小时
+  refresh-expiration: 604800000 # 7天
+
+# 文件存储配置
+file:
+  upload:
+    path: uploads/
+    max-size: 10485760 # 10MB
+    allowed-extensions: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx
+
+# 日志配置
+logging:
+  level:
+    com.dlut.blockchain: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web.servlet.mvc.method.annotation: DEBUG
+    org.springframework.web.servlet.handler: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/blockchain-website.log
+    max-size: 10MB
+    max-history: 30
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,httptrace
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    httptrace:
+      enabled: true
+  metrics:
+    export:
+      simple:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s,2s,5s
+
+# 跨域配置
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# API 文档配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  info:
+    title: 区块链网站后端API
+    description: 区块链实验室网站后端服务
+    version: 1.0.0
+    contact:
+      name: 区块链实验室
+      email: blockchain@dlut.edu.cn
+
+# 自定义配置
+app:
+  name: 区块链实验室网站
+  version: 1.0.0
+  upload:
+    base-url: http://localhost:8080/api/uploads
+    avatar-path: avatars/
+    project-path: projects/
+    post-path: posts/
+    meeting-path: meetings/
