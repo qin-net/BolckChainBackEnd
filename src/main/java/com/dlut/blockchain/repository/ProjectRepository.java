@@ -156,4 +156,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * 统计指定时间范围内创建的项目数
      */
     long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    /**
+     * 根据项目名称模糊查询（忽略大小写）
+     */
+    Page<Project> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+    
+    /**
+     * 根据项目名称和状态联合查询
+     */
+    Page<Project> findByNameContainingIgnoreCaseAndStatus(@Param("keyword") String keyword, @Param("status") Project.ProjectStatus status, Pageable pageable);
 }

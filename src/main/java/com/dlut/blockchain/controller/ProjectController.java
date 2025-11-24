@@ -2,6 +2,7 @@ package com.dlut.blockchain.controller;
 
 import com.dlut.blockchain.dto.ProjectDto;
 import com.dlut.blockchain.entity.Project;
+import com.dlut.blockchain.entity.Project.ProjectStatus;
 import com.dlut.blockchain.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +42,10 @@ public class ProjectController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(name = "pageSize", required = false) Integer pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String category) {
         
         // 如果提供了pageSize参数，优先使用它
         int pageSizeToUse = (pageSize != null) ? pageSize : size;
@@ -56,8 +60,86 @@ public class ProjectController {
         
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, pageSizeToUse, Sort.by(direction, actualSortBy));
-        Page<ProjectDto> projects = projectService.getAllProjects(pageable);
+        
+        // 处理前端传来的status参数，将其转换为枚举类型
+        ProjectStatus projectStatus = null;
+        if (status != null && !status.isEmpty()) {
+            projectStatus = convertStringToProjectStatus(status);
+        }
+        
+        // 处理前端传来的category参数，将其转换为枚举类型
+        Project.ProjectCategory projectCategory = null;
+        if (category != null && !category.isEmpty()) {
+            projectCategory = convertStringToProjectCategory(category);
+        }
+        
+        Page<ProjectDto> projects = projectService.getAllProjects(pageable, keyword, projectStatus, projectCategory);
         return ResponseEntity.ok(projects);
+    }
+    
+    /**
+     * 将字符串转换为ProjectCategory枚举
+     * @param categoryString 分类字符串
+     * @return 对应的ProjectCategory枚举值，如果找不到则返回null
+     */
+    private Project.ProjectCategory convertStringToProjectCategory(String categoryString) {
+        try {
+            // 直接尝试匹配枚举值（区分大小写）
+            return Project.ProjectCategory.valueOf(categoryString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // 尝试其他常见命名格式
+            switch (categoryString.toLowerCase()) {
+                case "blockchain":
+                    return Project.ProjectCategory.BLOCKCHAIN;
+                case "smart-contract":
+                case "smart_contract":
+                    return Project.ProjectCategory.SMART_CONTRACT;
+                case "real-estate":
+                case "real_estate":
+                    return Project.ProjectCategory.REAL_ESTATE;
+                case "food-safety":
+                case "food_safety":
+                    return Project.ProjectCategory.FOOD_SAFETY;
+                case "intellectual-property":
+                case "intellectual_property":
+                    return Project.ProjectCategory.INTELLECTUAL_PROPERTY;
+                default:
+                    log.warn("Unknown project category: {}", categoryString);
+                    return null;
+            }
+        }
+    }
+    
+    /**
+     * 将字符串转换为ProjectStatus枚举
+     * @param statusString 状态字符串
+     * @return 对应的ProjectStatus枚举值，如果找不到则返回null
+     */
+    private ProjectStatus convertStringToProjectStatus(String statusString) {
+        switch (statusString.toLowerCase()) {
+            case "planning":
+                return ProjectStatus.PLANNING;
+            case "in-progress":
+            case "in_progress":
+                return ProjectStatus.IN_PROGRESS;
+            case "completed":
+                return ProjectStatus.COMPLETED;
+            case "cancelled":
+                return ProjectStatus.CANCELLED;
+            case "on-hold":
+            case "on_hold":
+                return ProjectStatus.ON_HOLD;
+            case "ongoing":
+                return ProjectStatus.ONGOING;
+            default:
+                // 尝试直接匹配枚举值
+                try {
+                    return ProjectStatus.valueOf(statusString.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Unknown project status: {}", statusString);
+                    return null;
+                }
+        }
     }
 
     /**

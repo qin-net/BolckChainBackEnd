@@ -46,6 +46,53 @@ public class ProjectService {
         // 手动构造PageImpl，避免缓存Page接口
         return new PageImpl<>(dtoList, pageable, projectPage.getTotalElements());
     }
+    
+    /**
+     * 获取所有项目（分页）- 支持关键字、状态和分类筛选
+     */
+    @Timed(value = "service.projects.getAllWithFilter", description = "Time taken to get all projects with filter")
+    public Page<ProjectDto> getAllProjects(Pageable pageable, String keyword, Project.ProjectStatus status, Project.ProjectCategory category) {
+        Page<Project> projectPage;
+        
+        // 根据是否有关键字、状态和分类参数进行不同的查询
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            if (status != null) {
+                // 同时有关键字和状态参数
+                projectPage = projectRepository.findByNameContainingIgnoreCaseAndStatus(
+                    keyword.trim(), status, pageable);
+            } else {
+                // 只有关键字参数
+                projectPage = projectRepository.findByNameContainingIgnoreCase(
+                    keyword.trim(), pageable);
+            }
+        } else if (status != null) {
+            // 只有状态参数
+            projectPage = projectRepository.findByStatus(status, pageable);
+        } else if (category != null) {
+            // 只有分类参数
+            projectPage = projectRepository.findByCategory(category, pageable);
+        } else {
+            // 没有筛选参数，查询所有
+            projectPage = projectRepository.findAll(pageable);
+        }
+        
+        // 转换DTO列表
+        List<ProjectDto> dtoList = projectPage.getContent()
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        
+        // 手动构造PageImpl，避免缓存Page接口
+        return new PageImpl<>(dtoList, pageable, projectPage.getTotalElements());
+    }
+    
+    /**
+     * 获取所有项目（分页）- 支持关键字和状态筛选
+     */
+    @Timed(value = "service.projects.getAllWithFilter", description = "Time taken to get all projects with filter")
+    public Page<ProjectDto> getAllProjects(Pageable pageable, String keyword, Project.ProjectStatus status) {
+        return getAllProjects(pageable, keyword, status, null);
+    }
 
     /**
      * 获取公开项目
