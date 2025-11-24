@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @version 1.0.0
  */
 @SpringBootApplication
-@ComponentScan(basePackages = "com.dlut.blockchain")
 @EnableCaching
 @EnableAsync
 @EnableTransactionManagement

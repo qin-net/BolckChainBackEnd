@@ -148,7 +148,7 @@ public class FileStorageService {
      * 根据分类获取文件
      */
     @Timed(value = "service.files.byCategory", description = "Time taken to get files by category")
-    @Cacheable(value = "files", key = "'category:' + #category")
+//    @Cacheable(value = "files", key = "'category:' + #category")
     public List<FileUploadDto> getFilesByCategory(String category) {
         log.info("根据分类获取文件: {}", category);
         List<FileUpload> files = fileUploadRepository.findByCategoryOrderByUploadedAtDesc(category);
@@ -223,7 +223,7 @@ public class FileStorageService {
      * 按分类统计文件数
      */
     @Timed(value = "service.files.countByCategory", description = "Time taken to get file count by category")
-    @Cacheable(value = "statistics", key = "'fileCountByCategory'")
+//    @Cacheable(value = "statistics", key = "'fileCountByCategory'")
     public Map<String, Long> getFileCountByCategory() {
         List<Object[]> results = fileUploadRepository.countByCategory();
         Map<String, Long> categoryCount = new HashMap<>();

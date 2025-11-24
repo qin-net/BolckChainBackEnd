@@ -102,6 +102,13 @@ public class Project extends BaseEntity {
      * 项目分类枚举
      */
     public enum ProjectCategory {
-        RESEARCH, DEVELOPMENT, COMPETITION, COLLABORATION, EDUCATION
+        RESEARCH, DEVELOPMENT, COMPETITION, COLLABORATION, EDUCATION,
+        BLOCKCHAIN, SMART_CONTRACT, IDENTITY, FINANCE, NFT, PAYMENT,
+        HEALTHCARE, REAL_ESTATE, LOGISTICS, ENVIRONMENT, CHARITY,
+        INSURANCE, INTELLECTUAL_PROPERTY, GOVERNANCE, GAMING,
+        FOOD_SAFETY, ENERGY, WALLET, 
+        // 为了处理数据库中可能存在的大小写不一致问题，添加更多变体
+        Wallet, // 用于匹配数据库中首字母大写的"Wallet"
+        wallet  // 用于匹配数据库中全小写的"wallet"
     }
 }

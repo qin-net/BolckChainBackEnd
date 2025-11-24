@@ -46,8 +46,16 @@ public class ProjectController {
         // 如果提供了pageSize参数，优先使用它
         int pageSizeToUse = (pageSize != null) ? pageSize : size;
         
+        // 修正排序字段映射，将updateTime映射到实际的实体字段updatedAt
+        String actualSortBy = sortBy;
+        if ("updateTime".equals(sortBy)) {
+            actualSortBy = "updatedAt";
+        } else if ("createTime".equals(sortBy)) {
+            actualSortBy = "createdAt";
+        }
+        
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, pageSizeToUse, Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(page, pageSizeToUse, Sort.by(direction, actualSortBy));
         Page<ProjectDto> projects = projectService.getAllProjects(pageable);
         return ResponseEntity.ok(projects);
     }
